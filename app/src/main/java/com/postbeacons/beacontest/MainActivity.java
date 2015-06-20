@@ -18,6 +18,7 @@ import org.altbeacon.beacon.Identifier;
 import org.altbeacon.beacon.MonitorNotifier;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
+import org.altbeacon.beacon.client.BeaconDataFactory;
 import org.altbeacon.beacon.client.DataProviderException;
 import org.w3c.dom.Text;
 
@@ -46,8 +47,14 @@ public class MainActivity extends ActionBarActivity implements BeaconConsumer, R
         // beaconManager.getBeaconParsers().add(new BeaconParser().
         //        setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
         beaconManager.bind(this);
+
+
+        // beacon isn't found unless we set a parser
+        // from http://stackoverflow.com/questions/25027983/is-this-the-correct-layout-to-detect-ibeacons-with-altbeacons-android-beacon-li
         beaconManager.getBeaconParsers().add(new BeaconParser().
                 setBeaconLayout("m:0-3=4c000215,i:4-19,i:20-21,i:22-23,p:24-24"));
+
+
         beaconManager.setForegroundScanPeriod(1000);
         beaconManager.setForegroundBetweenScanPeriod(1000);
         beaconManager.setBackgroundScanPeriod(1000);
@@ -75,12 +82,12 @@ public class MainActivity extends ActionBarActivity implements BeaconConsumer, R
 
             @Override
             public void didExitRegion(Region region) {
-                Log.i(TAG, "I no longer see an beacon");
+                Log.i(TAG, "I no longer see a beacon");
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        text.setText("I no longer see an beacon");
+                        text.setText("I no longer see a beacon");
                     }
                 });
             }
@@ -103,6 +110,10 @@ public class MainActivity extends ActionBarActivity implements BeaconConsumer, R
     }
 
 
+    /*
+    This is called if we have called startRangingBeaconsInRegion, and this is given to setRangeNotifier.
+    It is every second with a list of the most recently seen Beacons
+     */
     @Override
     public void didRangeBeaconsInRegion(final Collection<Beacon> iBeacons, Region region) {
         for (Beacon iBeacon : iBeacons) {
@@ -125,6 +136,9 @@ public class MainActivity extends ActionBarActivity implements BeaconConsumer, R
     }
 
 
+    /*
+    I think, called when iBeacon.requestData(this) is called, and "this" implements BeaconDataNotifier
+     */
     @Override
     public void beaconDataUpdate(Beacon iBeacon, BeaconData iBeaconData, DataProviderException e) {
         if (e != null) {
